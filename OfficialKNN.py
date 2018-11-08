@@ -23,12 +23,12 @@ def get_all_words(textFileNames):
                 for word in line.split():
                     if word not in all_words:
                         all_words[word] = 0
-        
+
     return all_words
 
 def stop():
     stop()
-           
+
 def read_in_file(file):
     testSet = {}
     sessionName = ""
@@ -54,23 +54,23 @@ def read_in_file(file):
             sessionVec[:] = []
     #return dictionary
     return testSet
-    
+
 #make text file vectors
 def text_file_to_vec(filePath, allWords):
-    # Copy for the text file. 
+    # Copy for the text file.
     wordFreqVec = {}
     for word in allWords:
         wordFreqVec[word] = 0
-        
+
     with open(filePath, 'r') as file:
         for line in file:
             for word in line.split():
                 wordFreqVec[word] += 1
-        
+
     retVec = []
     for word in wordFreqVec:
         retVec.append(wordFreqVec[word])
-    
+
     return retVec
 
 #find the distance between two text file vectors
@@ -83,8 +83,8 @@ def text_file_vec_distance(v1, v2):
 
     for i in range(len(v1)):
         dist += (v1[i] - v2[i]) ** 2
-        
-    dist = dist/len(v1)    
+
+    dist = dist/len(v1)
     return dist
 
 # make a dictionary with the first row in the transcipts file and each of the sessions
@@ -95,8 +95,8 @@ def make_dictionary(line):
         dictionary = dict(zip(orig_list, line))# line should be desired session info line
         return dictionary
     # testSet = read_in_file(file) ????????????????
-    
-# get the k-nearest neighbors of a specific test instance using all of the training set      
+
+# get the k-nearest neighbors of a specific test instance using all of the training set
 def get_neighbors(trainingSet, testInstance, k):
     distances = {}
     for x in range(len(trainingSet)):
@@ -108,13 +108,13 @@ def get_neighbors(trainingSet, testInstance, k):
         training_set_key = tuples[x][0]
         training_set_point = trainingSet[training_set_key]
         neighbors.append(training_set_point)
-    return neighbors    
+    return neighbors
 
 def coefficients(predScore, realScore):
     global predCondition
-    if(predScore > 5 and realScore >= 5):
+    if(predScore >= 5 and realScore >= 5):
         predCondition = "True Positive"
-    if(realScore < 5 and predScore > 5):
+    if(realScore < 5 and predScore >= 5):
         predCondition = "False Positive"
     if(predScore < 5 and realScore >= 5):
         predCondition = "False Negative"
@@ -174,14 +174,14 @@ def convertFiletoDict(file):
         lineContent[0] =  lineContent[0].strip(' ')
         #print(lineContent[0])
         strVecContent = lineContent[1].split(',')
-        
+
         float_vector = []
         for str in strVecContent:
             str.strip(' ')
             float_vector.append(float(str))
         d[lineContent[0]] = float_vector
     return d
-        
+
 def main(model):
     # prepare data
     allWords = {}
@@ -195,7 +195,7 @@ def main(model):
     data = []
     calculatedVectOfVectors = []
     sessionToNumVec = {}
-    
+
     with open(transcriptFile, 'r') as readFile:
         sessionToNumVec = convertFiletoDict(readFile)
     with open(''.join([filePath,fileName]), 'r') as file:
@@ -206,63 +206,71 @@ def main(model):
                 cur_line = line.strip().split(',')
                 dictionary = dict(zip(header, cur_line))
                 data.append(dictionary)
-                
+
    # f = open('C:\Python\text_scanner\output.txt','w')
-     
+
     sessions = []
     textFileNames = []
     count = 0
     for cur_data in data:
         study_folder = cur_data['study']
         study_folder = study_folder.split('_')[0]
-        
+
         session_filepath = filePath + cur_data['session'] + '.txt'
         textFileNames.append(session_filepath)
-        
+
         test = cur_data['split.patient.70/30'] == 'test'
         words = sessionToNumVec[cur_data['session']]
         with open(session_filepath, 'r') as myfile:
             transcript = myfile.read().replace('\n', '')
-        norms_ratings = processText(transcript)
+        norms_ratings = processText(transcript).flatten()
+        print('norms_ratings: ', norms_ratings)
+        print('type of norms rating: ', type(norms_ratings))
+        print('words: ', sessionToNumVec[cur_data['session']])
+        print('type words: ', type(sessionToNumVec[cur_data['session']]))
+        sessionToNumVec[cur_data['session']].extend(norms_ratings)
+        print('changed words: ', sessionToNumVec[cur_data['session']])
         sessions.append({
             'test': test,
             'session_filepath': session_filepath,
             'session_name': cur_data['session'],
-            'words': sessionToNumVec[cur_data['session']].append(norms_ratings),
+            'words': sessionToNumVec[cur_data['session']],
             'empathy': float(cur_data['empathy'])
             })
     allWords = get_all_words(textFileNames)
     
-    transcript_to_vec = read_in_file(transcriptFile)
     
+    
+    transcript_to_vec = read_in_file(transcriptFile)
+
 #     for session in sessions:
 #          session['words'] = text_file_to_vec(session['session_filepath'], allWords)
-#          session['words'] = transcript_to_vec[session['session_name']] 
+#          session['words'] = transcript_to_vec[session['session_name']]
 #          print(len(session['words']))
 
     test_set = [session for session in sessions if session['test']]
     training_set = [session for session in sessions if not session['test']]
-          
+
 
     # Fill these out with data from training_set
     X = [] #word vectors?
     Y = [] #empathy ratings? y > 5 is 1, y < 5 is 0
-    
+
     # Fill these out with data from test_set
     test_X = [] #word vectors?
     test_Y = [] #empathy ratings?
-    
+
     for set in test_set:
         count = count + 1
         test_X.append(set['words'])
         test_Y.append(set['empathy'])
     for set in training_set:
         X.append(set['words'])
-        Y.append(set['empathy'])    
+        Y.append(set['empathy'])
 
     # Fit model to the data (call your .fit(X, Y) function)
   #  model.fit(np.array(X), np.array(Y,np.int8))
-   
+
   #  generate predictions
     k = 3
     feature_labels = []
@@ -279,12 +287,12 @@ def main(model):
  #   print("Mean Squared Error: ", mean_squared_error(test_Y, predictions_y))
     # Use KNeighborsClassifer's kneighbors
   #  array_of_closest_indices = model.kneighbors(test_X, return_distance=False)
- 
+
 #     for closest_indices in array_of_closest_indices:
 #         neighbors = []
 #         for x_index in closest_indices:
 #             neighbors.append(training_set[x_index])
-    
+
     for x in range(len(test_set)):
         neighbors = get_neighbors(training_set, test_set[x], k)
         total_empathy_score = 0.0
@@ -310,9 +318,9 @@ def main(model):
             falseNeg += 1
         print('Predicted Condition: ' + pred_Conditions)
         pred_empathy_labels.append(pred_empathy_score >= 5)
-        
+
         real_empathy_labels.append(real_empathy_score >= 5)
-        
+
         # Pearson's Correlation Coefficient
         first_call = mean(pred_empathy_list)
         second_call = mean(real_empathy_list)
@@ -320,7 +328,7 @@ def main(model):
         first_den += (pred_empathy_score - first_call)*(pred_empathy_score - first_call)
         second_den += (real_empathy_score - second_call)*(real_empathy_score - second_call)
     print('predicted emp list', pred_empathy_list)
-    print('real emp list', real_empathy_list) 
+    print('real emp list', real_empathy_list)
 
     print('training set: ', len(Y))
     print('test set', len(test_Y))
@@ -328,10 +336,10 @@ def main(model):
     print('counter', counter)
     with open(realEmpathyLabelFile, 'w') as file:
         file.write(str(real_empathy_list))
-        
+
     r = numerator / (sqrt(first_den)*sqrt(second_den))
     total = 0
-    
+
     for x in range(len(pred_empathy_labels)):
         total += int(pred_empathy_labels[x] == real_empathy_labels[x])
     count = 0
@@ -342,7 +350,7 @@ def main(model):
                 count = count + 1
             else:
                 falseCount = falseCount + 1
-                
+
     print('len true: ', count)
     print('len false: ', falseCount)
     print("Average Accuracy: " + str(total/len(pred_empathy_labels)))
@@ -356,19 +364,19 @@ def main(model):
 #     print("False Discovery Rate: " + str(falseDiscoveryRate(truePos, falsePos)))
 #     print("Miss Rate/ False Negative Rate: " + str(missRate(truePos, falseNeg)))
 #     print("F1 Score: " + str(f1Rate(truePos, falsePos, trueNeg)))
-#     
+#
 #     print("Informedness: " + str(informedness(truePos, falseNeg, trueNeg, falsePos)))
 #     print("Markedness: " + str(markedness(truePos, falsePos, trueNeg, falseNeg)))
    # f.close()
-     
-    
+
+
 main(KNeighborsClassifier(n_neighbors=3))
 #main(LinearRegression())
 
 # if they are >= 5 set accuracy to 1 otherwise set them to 0
 #for each session, make a tuple that includes its empathy rating
 #make a dictionary of all of the words
-#find k closest neighbors 
+#find k closest neighbors
 #pull empathy rating from those k and return the most common one (the average rounded up)
 
-        
+

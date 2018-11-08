@@ -1,9 +1,9 @@
 import numpy as np
-import spacy 
-import pickle 
+import spacy
+import pickle
 from glob import iglob as glob
-import os.path 
-from os.path import basename 
+import os.path
+from os.path import basename
 from tqdm import *
 import argparse
 
@@ -45,21 +45,21 @@ def functionals(vals):
 ################################################################
 
 emotiword = {}
-for dim in glob(os.path.join('C:/Users/Boltak/Desktop/Emotiword', "*.pickle")):
+for dim in glob(os.path.join('./Emotiword', "*.pickle")):
     with open(dim, 'rb') as f:
         emotiword[basename(dim).replace(".pickle", "")] = pickle.load(f, encoding = 'latin1')
 
 ################################################################
 # These are the tags I'm interest in. I'll calculate functionals
 # only on these.
-# These depend on the preprocessor so it might be different for 
+# These depend on the preprocessor so it might be different for
 # NLTK.
 ################################################################
 keep_pos = sorted(["ADJ", "ADV", "VERB"])
 
 ################################################################
-# Process text 
-# Returns a tensor of shape 
+# Process text
+# Returns a tensor of shape
 #        #tags x #emotiword dimensions x #functionals
 ################################################################
 def processText(text):
@@ -73,7 +73,7 @@ def processText(text):
     for word in nlp(text):
 
         if word.pos_ not in keep_pos:
-            continue 
+            continue
 
         if word.orth_ in emotiword['aro']:
             vector = [emotiword[dim][word.orth_] for dim in emotiword]
@@ -116,7 +116,7 @@ def processText(text):
 #     for i, k in enumerate(keep_tag):
 #         if len(pos_dict[k]) > 0:
 #             norms_ratings[k] = {dim : {name : f(pos_dict[k]) for name, f in zip(funcs_names, funcs)} for dim in emotiword}
-            
+
 
 
 ################################################################
@@ -127,10 +127,10 @@ def processText(text):
 #         with open(f) as inpt:
 #             lines = inpt.readlines()
 #             ratings = np.empty((len(lines), len(keep_pos), len(emotiword), len(funcs)))
-# 
+#
 #             for idx, line in enumerate(lines):
 #                 ratings[idx, :] = processText(line)
-# 
+#
 #         ################################################################
 #         # Save normative tensor to a file
 #         ################################################################
