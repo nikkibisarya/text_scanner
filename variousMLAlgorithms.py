@@ -105,11 +105,12 @@ def main(model, isClassifier):
         session_filepath = filePath + cur_data['session'] + '.txt'
         with open(session_filepath, 'r') as myfile:
             transcript = myfile.read().replace('\n', '')
-        norms_ratings = processText(transcript)
+        norms_ratings = processText(transcript).flatten()
+        sessionToNumVec[cur_data['session']].extend(norms_ratings)
         sessions.append({
             'test': test,
             'session_name': cur_data['session'],
-            'words': sessionToNumVec[cur_data['session']].append(norms_ratings),
+            'words': sessionToNumVec[cur_data['session']],
             'empathy': float(cur_data['empathy'])
             })
         

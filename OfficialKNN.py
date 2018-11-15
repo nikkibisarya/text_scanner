@@ -7,7 +7,7 @@ import numpy as np
 from cmath import sqrt
 from scipy.stats.stats import pearsonr
 import sys
-from psycholinguisticNorms import processText
+#from psycholinguisticNorms import processText
 import collections
 filePath = '/home/nikki/clean_transcripts/'
 fileName = 'transcript_splits_data_new.txt'
@@ -223,13 +223,13 @@ def main(model):
         words = sessionToNumVec[cur_data['session']]
         with open(session_filepath, 'r') as myfile:
             transcript = myfile.read().replace('\n', '')
-        norms_ratings = processText(transcript).flatten()
-        print('norms_ratings: ', norms_ratings)
-        print('type of norms rating: ', type(norms_ratings))
-        print('words: ', sessionToNumVec[cur_data['session']])
-        print('type words: ', type(sessionToNumVec[cur_data['session']]))
-        sessionToNumVec[cur_data['session']].extend(norms_ratings)
-        print('changed words: ', sessionToNumVec[cur_data['session']])
+      #  norms_ratings = processText(transcript).flatten()
+       # print('norms_ratings: ', norms_ratings)
+      #  print('type of norms rating: ', type(norms_ratings))
+      #  print('words: ', sessionToNumVec[cur_data['session']])
+     #   print('type words: ', type(sessionToNumVec[cur_data['session']]))
+      #  sessionToNumVec[cur_data['session']].extend(norms_ratings)
+     #   print('changed words: ', sessionToNumVec[cur_data['session']])
         sessions.append({
             'test': test,
             'session_filepath': session_filepath,
